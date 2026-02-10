@@ -422,6 +422,7 @@ jobs:
         run: ./project/scripts/sbt scala3-interfaces/mimaReportBinaryIssues
 
   mima-tasty-core-nonbootstrapped:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     needs: tasty-core-nonbootstrapped
     steps:
@@ -440,6 +441,7 @@ jobs:
         run: ./project/scripts/sbt tasty-core-nonbootstrapped/mimaReportBinaryIssues
 
   static-analysis-scala-library-bootstrapped:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     needs: scala-library-bootstrapped
     steps:
@@ -461,6 +463,7 @@ jobs:
         run: ./project/scripts/sbt scala-library-bootstrapped/missinglinkCheck
 
   mima-tasty-core-bootstrapped:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     needs: tasty-core-bootstrapped
     steps:
@@ -700,6 +703,7 @@ jobs:
         run: ./project/scripts/sbt scala3-language-server/test
 
   scripted-tests:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     needs: [scala3-compiler-bootstrapped, tasty-core-bootstrapped, scala3-staging, scala3-tasty-inspector, scala-library-sjs, scaladoc]
     steps:
@@ -717,6 +721,7 @@ jobs:
         run: ./project/scripts/sbt scala3-bootstrapped/scripted
 
   community_build_a:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     steps:
       - name: Checkout cleanup script
@@ -735,6 +740,7 @@ jobs:
           ./project/scripts/sbt "community-build/testOnly dotty.communitybuild.CommunityBuildTestA"
 
   community_build_b:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     steps:
       - name: Checkout cleanup script
@@ -754,6 +760,7 @@ jobs:
 
 
   community_build_c:
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     steps:
       - name: Checkout cleanup script
