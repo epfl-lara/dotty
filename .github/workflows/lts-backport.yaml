@@ -1,9 +1,6 @@
 name: Add to backporting project
 
-on:
-  push:
-    branches:
-      - main
+on: [workflow_dispatch] # Disabled on fork
 
 # The backporting project is updated via the API with a GitHub App token, the
 # workflow GITHUB_TOKEN is only used to check out the repository.

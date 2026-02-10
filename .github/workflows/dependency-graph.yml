@@ -1,8 +1,5 @@
 name: Update Dependency Graph
-on:
-  push:
-    branches:
-      - main # default branch of the project
+on: [workflow_dispatch] # Disabled on fork
 
 permissions:
   contents: write  # To submit the dependency graph (in sbt-dependency-submission)

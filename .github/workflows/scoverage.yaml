@@ -1,15 +1,6 @@
 name: Scoverage
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *'  # Every day at 3 AM
-  push:
-    tags:
-      - '*'
-  pull_request:
-    branches:
-      - main
+on: [workflow_dispatch] # Disabled on fork
 
 permissions:
   contents: read
