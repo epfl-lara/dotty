@@ -72,7 +72,7 @@ jobs:
                 fi
               done)
               if [ -n "$changes" ]; then
-                notes="${notes}\n\nChanges since [${prev_tag}](../releases/tag/${prev_tag}):\n\`\`\`\n${changes}\n\`\`\`"
+                notes="${notes}\n\nChanges since [${prev_tag}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${prev_tag}):\n\`\`\`\n${changes}\n\`\`\`"
               fi
             fi
           fi
