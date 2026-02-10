@@ -1,14 +1,6 @@
 name: Specification
 
-on:
-  push:
-    tags:
-      - '*'
-    branches-ignore:
-      - 'gh-readonly-queue/**'
-  pull_request:
-  merge_group:
-  workflow_dispatch:
+on: [workflow_dispatch] # Disabled on fork
 
 env:
   DOTTY_CI_RUN: true
