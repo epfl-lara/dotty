@@ -146,7 +146,7 @@ jobs:
         run: true # ./project/scripts/sbt scaladoc/sourceLinksIntegrationTest:test
 
   check-error-code-snippets:
-    if: github.event_name != 'pull_request' || !contains(github.event.pull_request.body, '[skip ci]')
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
