@@ -1,0 +1,89 @@
+name: LARA Release to Maven Central
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      NIGHTLYBUILD: "yes"
+      SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_TOKEN }}
+      PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
+      SBT_PGP_USE_GPG: "true"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'adopt'
+          java-version: 17
+          cache: 'sbt'
+      - uses: sbt/setup-sbt@v1
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.SONATYPE_PGP_KEY }}
+          passphrase: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
+      - name: Get version string
+        id: version
+        run: |
+          ver=$(./project/scripts/sbt "print scala3-compiler-bootstrapped/version" | tail -n1)
+          echo "Publishing version: $ver"
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ver="${{ steps.version.outputs.version }}"
+          date=$(echo "$ver" | grep -oP '\d{8}')
+
+          # Get fork-specific commits (between upstream merge-base and HEAD, excluding [fork-only])
+          git remote add upstream https://github.com/scala/scala3.git || true
+          git fetch upstream main --quiet
+          merge_base=$(git merge-base HEAD upstream/main)
+          fork_commits=$(git log --format='%h %s' "${merge_base}..HEAD" | grep -v '\[fork-only\]')
+
+          # Build release notes
+          iso_date="${date:0:4}-${date:4:2}-${date:6:2}"
+          notes="Date: ${iso_date}"
+
+          # Try to show changes since previous release
+          prev_tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+          if [ -n "$prev_tag" ] && git rev-parse "${prev_tag}" >/dev/null 2>&1; then
+            # Get fork-specific commits at the time of the previous release
+            prev_merge_base=$(git merge-base "${prev_tag}" upstream/main)
+            prev_fork_commits=$(git log --format='%h %s' "${prev_merge_base}..${prev_tag}" | grep -v '\[fork-only\]')
+
+            # New commits = fork commits whose messages aren't in the previous release
+            # Compare by message (after hash) since hashes change on rebase
+            new_changes=$(comm -23 \
+              <(echo "$fork_commits" | sed 's/^[a-f0-9]* //' | sort) \
+              <(echo "$prev_fork_commits" | sed 's/^[a-f0-9]* //' | sort))
+
+            if [ -n "$new_changes" ]; then
+              # Show with hashes, in commit order
+              changes=$(echo "$fork_commits" | while IFS= read -r line; do
+                msg="${line#* }"
+                if echo "$new_changes" | grep -qFx "$msg"; then
+                  echo "$line"
+                fi
+              done)
+              if [ -n "$changes" ]; then
+                notes="${notes}\n\nChanges since [${prev_tag}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${prev_tag}):\n\`\`\`\n${changes}\n\`\`\`"
+              fi
+            fi
+          fi
+
+          notes="${notes}\n\nBase: [scala@${merge_base:0:7}](https://github.com/scala/scala3/commit/${merge_base})"
+
+          gh release create "${ver}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "${ver}" \
+            --notes "$(echo -e "${notes}")"
+      - name: Sign and stage artifacts locally
+        run: sbt scala3-bootstrapped/publishSigned
+      - name: Upload and release to Maven Central
+        run: sbt sonaRelease

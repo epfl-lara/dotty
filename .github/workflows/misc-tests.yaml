@@ -1,10 +1,7 @@
 name: Miscellaneous Tests
 
-on:
-  push:
-    branches:
-      - 'main'
-  pull_request:
+on: # Disabled on fork
+  workflow_dispatch:
   workflow_call:
 
 permissions:
