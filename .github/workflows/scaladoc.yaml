@@ -1,14 +1,6 @@
 name: scaladoc
 
-on:
-  push:
-    branches-ignore:
-      - 'language-reference-stable'
-      - 'gh-readonly-queue/**'
-  pull_request:
-    branches-ignore:
-      - 'language-reference-stable'
-  merge_group:
+on: [workflow_dispatch] # Disabled on fork
 permissions:
   contents: read
 
@@ -146,7 +138,7 @@ jobs:
         run: true # ./project/scripts/sbt scaladoc/sourceLinksIntegrationTest:test
 
   check-error-code-snippets:
-    if: github.event_name != 'pull_request' || !contains(github.event.pull_request.body, '[skip ci]')
+    if: false # Disabled – not relevant for this fork
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
