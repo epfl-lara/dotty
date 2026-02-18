@@ -9,9 +9,9 @@ jobs:
     env:
       NEWNIGHTLY: "yes"
       NIGHTLYBUILD: "yes"
-      MAVEN_REPOSITORY_URL: https://central.sonatype.com/repository/maven-releases/
+      MAVEN_REPOSITORY_URL: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/
       MAVEN_REPOSITORY_REALM: Sonatype Nexus Repository Manager
-      MAVEN_REPOSITORY_HOST: central.sonatype.com
+      MAVEN_REPOSITORY_HOST: s01.oss.sonatype.org
       MAVEN_REPOSITORY_USER: ${{ secrets.SONATYPE_USERNAME }}
       MAVEN_REPOSITORY_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
     steps:
