@@ -1,35 +1,43 @@
-name: LARA Release to Maven Central
+name: LARA Release to GitHub Pages
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     env:
+      NEWNIGHTLY: "yes"
       NIGHTLYBUILD: "yes"
-      SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_TOKEN }}
-      PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
-      SBT_PGP_USE_GPG: "true"
+      MAVEN_REPOSITORY_REALM: GitHub Pages
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: gh-pages
       - uses: actions/setup-java@v5
         with:
           distribution: 'adopt'
           java-version: 17
           cache: 'sbt'
       - uses: sbt/setup-sbt@v1
-      - name: Import GPG Key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.SONATYPE_PGP_KEY }}
-          passphrase: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
       - name: Get version string
         run: |
           ver=$(./project/scripts/sbt "print scala3-compiler-bootstrapped/version" | tail -n1)
           echo "Publishing version: $ver"
-      - name: Sign and stage artifacts locally
-        run: sbt scala3-bootstrapped/publishSigned
-      - name: Upload and release to Maven Central
-        run: sbt sonaRelease
+      - name: Publish artifacts to local Maven repository
+        run: sbt scala3-bootstrapped/publish
+        env:
+          MAVEN_REPOSITORY_URL: "file://${{ github.workspace }}/gh-pages/maven"
+      - name: Deploy to GitHub Pages
+        working-directory: gh-pages
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add maven/
+          git commit -m "Publish $ver"
+          git push
