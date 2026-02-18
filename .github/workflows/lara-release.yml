@@ -7,13 +7,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      NEWNIGHTLY: "yes"
       NIGHTLYBUILD: "yes"
-      MAVEN_REPOSITORY_URL: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/
-      MAVEN_REPOSITORY_REALM: Sonatype Nexus Repository Manager
-      MAVEN_REPOSITORY_HOST: s01.oss.sonatype.org
-      MAVEN_REPOSITORY_USER: ${{ secrets.SONATYPE_USERNAME }}
-      MAVEN_REPOSITORY_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
+      SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_TOKEN }}
+      PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
+      SBT_PGP_USE_GPG: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
@@ -31,5 +29,7 @@ jobs:
         run: |
           ver=$(./project/scripts/sbt "print scala3-compiler-bootstrapped/version" | tail -n1)
           echo "Publishing version: $ver"
-      - name: Publish to Maven Central
+      - name: Sign and stage artifacts locally
         run: sbt scala3-bootstrapped/publishSigned
+      - name: Upload and release to Maven Central
+        run: sbt sonaRelease
