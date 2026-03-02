@@ -52,7 +52,7 @@ abstract class Lifter {
   protected def liftedExprType(expr: Tree)(using Context): Type =
     expr.tpe.widen.deskolemized
 
-  private def lift(defs: mutable.ListBuffer[Tree], expr: Tree, prefix: TermName = EmptyTermName)(using Context): Tree =
+  private[typer] def lift(defs: mutable.ListBuffer[Tree], expr: Tree, prefix: TermName = EmptyTermName)(using Context): Tree =
     if (noLift(expr)) expr
     else {
       val name = UniqueName.fresh(prefix)
@@ -186,6 +186,11 @@ class LiftComplex extends Lifter {
   def noLift(expr: tpd.Tree)(using Context): Boolean = tpd.isPurePath(expr)
 }
 object LiftComplex extends LiftComplex
+
+/** Lift all arguments whose type is not stable */
+object LiftUnstable extends Lifter {
+  def noLift(expr: tpd.Tree)(using Context): Boolean = expr.tpe.isStable
+}
 
 /** Lift impure + lift the prefixes */
 object LiftCoverage extends LiftImpure {
